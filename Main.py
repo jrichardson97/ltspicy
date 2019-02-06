@@ -1,5 +1,4 @@
-import random
-import time
+import mainLib as nav, time, array, math, cmath
 # import RPi.GPIO
 
 # -------------------Global Variables-----------------
@@ -7,8 +6,26 @@ startTime = time.time()
 beamState = False
 collectedObjects = 0
 
-# -------------------Function Definitions--------------------------------------------------
+# -------------------State Variables-----------------
+PATHING_TO_CIRCLE = 0
+PATHING_AROUND_CIRCLE = 1
+PATHING_HOME_TIME= 2
+PATHING_HOME_BAY=3
+RESETTING=4
+currentState=PATHING_TO_CIRCLE
 
+# -------------------Circle Data---------------------
+currentCircle = 0
+circleRadii = [28, 42, 56, 70, 84]
+circleXY = [19.7990,29.6985,39.5980,49.4975,59.3970]
+circleStartAngle = 0.7853981634
+circleEndAngle = 5.497787144
+
+# ------------------Key Positions in [x,y,theta]------------
+homePos=[150,0,0]
+targetPos=[19.7990,19.7990,circleStartAngle]
+
+# -------------------Function Definitions--------------------------------------------------
 # Initialization
 def init():
     print("Initializing")
@@ -40,20 +57,17 @@ def init():
     # if GPIO.input(11)!=True:
         # Beam Break Error Message here
 
-
-# Request Position from Localization Brain
-def getPosition():
-    position = [random.randint(0,192),random.randint(0,192)]
-    print("Current Position:" + str(position).strip('[]'))
-    return position
-
-
-# Update Current Path
+# Determines how to get to spcified coordinates and calls Drive function accordingly
 def path(coordinates = []):
     print ("Path Updated. Navigating to " + str(coordinates[0])+ ", " + str(coordinates[1]))
-    drive(1,1)
-    return
 
+    if(currentState==PATHING_AROUND_CIRCLE):
+        speeds = nav.driveCircle(circleRadii[currentCircle])
+        drive(speeds[0],speeds[1])
+        return
+    else:
+        #Determine wheel speed alternative 
+        return
 
 # Send Drive Signal to Wheels
 def drive(lSpeed, rSpeed):
@@ -61,69 +75,85 @@ def drive(lSpeed, rSpeed):
 
     # p1.ChangeDutyCycle(lSpeed)
     # p2.ChangeDutyCycle(rSpeed)
+
+    checkConditions()
     return
 
+#Checks the time, objects collected, and target point reached conditions
 def checkConditions():
     global startTime
     global beamState
     global collectedObjects
 
     # If less than 20 seconds remain
-    if time.time() - startTime >= 10:
+    if (time.time() - startTime >= 160):
         print("Time's almost up. Returning Home")
-        returnHome(time)
+        currentState=PATHING_HOME_TIME
+        returnHome()
+    else:
+        # If Beam Break State change
+        if beamState==False: # && GPIO.input(11)==True:
+            beamState = True
+            collectedObjects += 1
+        elif beamState==True: #&& GPIO.input(11)==False:
+            beamState = False
+
+        if (collectedObjects>=2):
+            currentState=PATHING_HOME_BAY
+            returnHome()
+            collectedObjects = 0
+        elif (nav.checkCoord(targetPos)):
+            navigate()
+
+#Determine target position
+def navigate():
+    global currentCircle
+
+    #If current state is pathing to a circle, switch to pathing around circle
+    if (currentState==PATHING_TO_CIRCLE):
+        print("Pathing around circle Now")
+        currentState=PATHING_AROUND_CIRCLE
+        targetPos=[circleXY[currentCircle],-circleXY[currentCircle],circleEndAngle]
+        path(targetPos)
+    
+    #If current state is pathing around circle, increment current circle and path to next circle
+    elif(currentState==PATHING_AROUND_CIRCLE):
+        print("Pathing to next circle from previous circle now")
+        currentState=PATHING_TO_CIRCLE
+        currentCircle+=1
+        targetPos=[circleXY[currentCircle],circleXY[currentCircle],circleEndAngle]
+        path(targetPos)
+
+    #If current state was resetting after dropping off, path to circle
+    elif(currentState==RESETTING):
+        print("Pathing to circle from home")
+        currentState=RESETTING
+        targetPos=targetPos=[circleXY[currentCircle],circleXY[currentCircle],circleEndAngle]
+        path(targetPos)
+    
+    else:
+        #Something fucked up
         return
 
-    # If Beam Break State change
-    # if beamState==False && GPIO.input(11)==True:
-        # beamState = True
-        # collectedObjects += 1
-    # elif beamState==True && GPIO.input(11)==False:
-        # beamState = False
+def returnHome():
+    targetPos=homePos
 
-    # If collectedObjects>=2:
-        # returnHome(maxObjects)
-        # collectedObjects = 0
+    while not(nav.checkCoord(homePos)):
+        path(homePos)
 
-    return
-
-
-#############################################
-######Look more into state variables#########
-#############################################
-def returnHome(state):
-    global collectedObjects
-
-    while True:
-        currentPosition = getPosition()
-        if currentPosition != [0,0]:
-            path([0,0])
-        else:
-            print("Returned Home")
-            break
-
-    if state==0:
+    if (currentState==PATHING_HOME_BAY):
+        dropOffReset()
+    elif(currentState==PATHING_HOME_TIME):
         raiseFlag()
-        # Exit Code
-    elif state==1:
-        collectedObjects=0
-
-    return
 
 def raiseFlag():
     return
 
+def dropOffReset():
+    return
 
-# -----------------Main Code-------------------------------------------------------------------
+#############################################################
+######################## Main Code ##########################
+#############################################################
 init()
-
-# Running Loop
-while True:
-    currentPos = getPosition()
-
-    path(currentPos)
-
-    checkConditions()
-
-    time.sleep(1)
-
+path(targetPos)
