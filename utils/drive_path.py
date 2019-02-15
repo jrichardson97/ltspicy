@@ -23,12 +23,10 @@ def drive_path(sp, x, y, yaw, v):
     state = tracker.State(x, y, yaw, v)
 
     lastIndex = len(cx) - 1
-    #time = 0.0
     x = [state.x]
     y = [state.y]
     yaw = [state.yaw]
     v = [state.v]
-    #t = [0.0]
     target_ind = tracker.calc_target_index(state, cx, cy)
 
     while lastIndex > target_ind:
@@ -37,15 +35,14 @@ def drive_path(sp, x, y, yaw, v):
 
         #Delta and target index
         di, target_ind = tracker.pure_pursuit_control(state, cx, cy, target_ind)
-        state = tracker.update(state, ai, di)
 
-        #time = time + dt
+        delta_to_wheels(di)
+        state = tracker.update(state, ai, di)
 
         x.append(state.x)
         y.append(state.y)
         yaw.append(state.yaw)
         v.append(state.v)
-        #t.append(time)
 
         if show_animation:  # pragma: no cover
             plt.cla()
@@ -75,3 +72,8 @@ def drive_path(sp, x, y, yaw, v):
 #Check Conditions
 
 #Loop
+
+
+def delta_to_wheels(di):
+
+    print(str(di))

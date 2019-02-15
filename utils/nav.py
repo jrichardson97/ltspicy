@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 
 def path_route(cx,cy,x,y,yaw,v):
     k = 0.1  # look forward gain
-    Lfc = 1.0  # look-ahead distance
+    Lfc = 0.01  # look-ahead distance
     Kp = 1.0  # speed propotional gain
     dt = 0.1  # [s]
-    L = 2.9  # [m] wheel base of vehicle
+    L = 0.2032  # [m] wheel base of vehicle
 
 
     show_animation = True
@@ -50,6 +50,9 @@ def path_route(cx,cy,x,y,yaw,v):
     while lastIndex > target_ind:
         ai = tracker.PIDControl(target_speed, state.v)
         di, target_ind = tracker.pure_pursuit_control(state, cx, cy, target_ind)
+
+        delta_to_wheels(di)
+
         state = tracker.update(state, ai, di)
 
         time = time + dt
@@ -81,3 +84,8 @@ def path_route(cx,cy,x,y,yaw,v):
     fv=state.v
 
     return fx,fy,fyaw,fv
+
+
+def delta_to_wheels(di):
+
+    print(str(di))

@@ -11,7 +11,7 @@ state = HOME
 
 # -------------------Circle Data---------------------
 currentCircle = 0
-circleRadii = [28, 42, 56, 70, 84]
+circleRadii = [28, 42, 56, 70, 84,98]
 circleXY = [19.7990, 29.6985, 39.5980, 49.4975, 59.3970]
 circleStartAngle = 0.7853981634
 circleEndAngle = 5.497787144
@@ -40,7 +40,7 @@ cy = [0, 0, 19.7990, 28, 19.7990, 0, -19.7990, -28, -19.7990]
 
 
 
-while(time.time()-start_time<30):
+while(time.time()-start_time<45):
     x,y,yaw,v = nav.path_route(cx, cy, x, y, yaw, v)
     currentCircle+=1
     i=currentCircle
@@ -51,3 +51,8 @@ while(time.time()-start_time<30):
     else:
         cx = [x, circleRadii[0], circleXY[0], 0, -circleXY[0], -circleRadii[0], -circleXY[0], 0, circleXY[0]]
         cy = [y, 0, circleXY[0], circleRadii[0], circleXY[0], 0, -circleXY[0], -circleRadii[0], -circleXY[0]]
+
+cx=[x,circleRadii[3],circleRadii[4],circleRadii[5]]
+cy=[y,0,0,0]
+
+nav.path_route(cx,cy,x,y,yaw,v)
