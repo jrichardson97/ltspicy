@@ -9,6 +9,34 @@ TURNAROUND = 3
 HOME = 4
 state = HOME
 
+
+
+
+
+
+####################################
+####################################
+#Error handling for are we off track
+#Each step check if we are near the point we are supposed to be at
+#If yes, continue
+#If no, save the current index of spline, recreate the spline, start over main loop
+#####################################
+##################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # -------------------Circle Data---------------------
 currentCircle = 0
 circleRadii = [28, 42, 56, 70, 84,98]
@@ -27,13 +55,18 @@ y=0
 yaw=180
 v=0
 
-""" while(time.time()-start_time < 30):
-    spline,state,currentCircle= gen.generate_path(state, x,y,currentCircle)
 
-    drive.drive_path(spline,x,y,yaw,v) """
+#Main Loop
+#init()
+
+while(1):
+    #Plan path
+    spline, state, currentCircle= gen.generate_path(state, x,y,currentCircle)
+    while(1):
+        drive.drive_path(spline,x,y,yaw,v)
 
 
-##########################################################################################################
+""" ##########################################################################################################
 #This section of code tests the nav.py function pathRoute
 cx = [150, 42, 19.7990, 0, -19.7990, -28, -19.7990, 0, 19.7990]
 cy = [0, 0, 19.7990, 28, 19.7990, 0, -19.7990, -28, -19.7990]
@@ -55,4 +88,4 @@ while(time.time()-start_time<45):
 cx=[x,circleRadii[3],circleRadii[4],circleRadii[5]]
 cy=[y,0,0,0]
 
-nav.path_route(cx,cy,x,y,yaw,v)
+nav.path_route(cx,cy,x,y,yaw,v) """
