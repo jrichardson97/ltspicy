@@ -2,6 +2,7 @@ import time
 import numpy as np
 import utils.cubic_spline_planner as spline
 import utils.pure_pursuit as tracker
+import RPi.GPIO as io
 import matplotlib.pyplot as plt
 
 #Circle States
