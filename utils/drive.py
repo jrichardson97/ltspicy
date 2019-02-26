@@ -11,6 +11,7 @@
 
 # Import the libraries the class needs
 import RPi.GPIO as io
+import time
 #io.setmode(io.BCM)
 io.setmode(io.BOARD)
 
@@ -50,8 +51,8 @@ io.setup(leftMotor_PWM_pin, io.OUT)
 io.setup(rightMotor_PWM_pin, io.OUT)
 
 # MAX Frequency 20 Hz
-leftMotorPWM = io.PWM(leftMotor_PWM_pin, 20)
-rightMotorPWM = io.PWM(rightMotor_PWM_pin, 20)
+leftMotorPWM = io.PWM(leftMotor_PWM_pin, 10000)
+rightMotorPWM = io.PWM(rightMotor_PWM_pin, 10000)
 
 leftMotorPWM.start(0)
 leftMotorPWM.ChangeDutyCycle(0)
@@ -139,3 +140,12 @@ def exit():
 	io.output(leftMotor_DIR_pin, False)
 	io.output(rightMotor_DIR_pin, False)
 	io.cleanup()
+
+
+if __name__ == "__main__":
+	setMotorLeft(0.5)
+	time.sleep(5)
+	setMotorLeft(0.25)
+	time.sleep(3)
+	setMotorLeft(-0.5)
+	time.sleep(5)

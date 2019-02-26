@@ -36,6 +36,7 @@ start_time = time.time()
 
 class Robot():
     def __init__(self):
+        print("Init")
         self.x = 150
         self.y = 0
         self.yaw = 180
@@ -239,7 +240,10 @@ class Robot():
             di, target_ind = tracker.pure_pursuit_control(
                 state, cx, cy, target_ind)
 
-            #delta_to_wheels(di)
+            print(str(di*100))
+
+            self.setMotorLeft(di*100)
+
             state = tracker.update(state, ai, di)
 
             x.append(state.x)
@@ -254,14 +258,19 @@ class Robot():
             self.y = cy[lastIndex]
             self.yaw = state.yaw
             self.v = state.v
+       
+
 
 #Main Loop
 #init()
 
 
 bot = Robot()
+bot.setMotorLeft(0.5)
 
-while(1):
-    #Plan path
+""" while(1):
+    bot.setMotorLeft(0.5)
+    
+     #Plan path
     bot.generate_path()
-    bot.track_path()
+    bot.track_path() """

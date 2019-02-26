@@ -12,6 +12,7 @@ def init():
     print("Initializing")
 
     # Don't Use GPIO.BOARD Pins 3,5,8,10,19,21,23,24,26,33
+    # Currently used pins: 11,13,15,16,18
 
     # --------------Motor Setup---------------------
     # Use GPIO Numbers
@@ -178,13 +179,13 @@ def main():
                 #Target Position Met
                 break;
 
-    # Generate initial path
-    current_path = [];
-    path_index = 0;
-    while(1):
-        # if time is met or if bay area full
-            # state = PATHING_HOME
-        break;
+        # Generate initial path
+        current_path = [];
+        path_index = 0;
+        while(1):
+            # if time is met or if bay area full
+                # state = PATHING_HOME
+            break;
         
 
 

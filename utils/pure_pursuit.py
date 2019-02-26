@@ -7,7 +7,7 @@ author: Atsushi Sakai (@Atsushi_twi)
 """
 import numpy as np
 import math
-import matplotlib.pyplot as plt
+""" import matplotlib.pyplot as plt """
 
 k = 0.1  # look forward gain
 Lfc = 1  # look-ahead distance
@@ -126,7 +126,7 @@ def main():
         v.append(state.v)
         t.append(time)
 
-        if show_animation:  # pragma: no cover
+        """ if show_animation:  # pragma: no cover
             plt.cla()
             plt.plot(cx, cy, ".r", label="course")
             plt.plot(x, y, "-b", label="trajectory")
@@ -134,12 +134,12 @@ def main():
             plt.axis("equal")
             plt.grid(True)
             plt.title("Speed[km/h]:" + str(state.v * 3.6)[:4])
-            plt.pause(0.001)
+            plt.pause(0.001) """
 
     # Test
     assert lastIndex >= target_ind, "Cannot goal"
 
-    if show_animation:  # pragma: no cover
+    """ if show_animation:  # pragma: no cover
         plt.cla()
         plt.plot(cx, cy, ".r", label="course")
         plt.plot(x, y, "-b", label="trajectory")
@@ -154,7 +154,7 @@ def main():
         plt.xlabel("Time[s]")
         plt.ylabel("Speed[km/h]")
         plt.grid(True)
-        plt.show()
+        plt.show() """
 
 
 if __name__ == '__main__':
