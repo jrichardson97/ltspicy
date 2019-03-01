@@ -72,8 +72,8 @@ class Robot():
         io.setup(self.rightMotor_PWM_pin, io.OUT)
 
         # MAX Frequency 20 Hz
-        self.leftMotorPWM = io.PWM(self.leftMotor_PWM_pin, 20)
-        self.rightMotorPWM = io.PWM(self.rightMotor_PWM_pin, 20)
+        self.leftMotorPWM = io.PWM(self.leftMotor_PWM_pin, 10000)
+        self.rightMotorPWM = io.PWM(self.rightMotor_PWM_pin, 10000)
 
         self.leftMotorPWM.start(0)
         self.leftMotorPWM.ChangeDutyCycle(0)
@@ -115,7 +115,7 @@ class Robot():
             # Stopp mode for the left motor
             io.output(self.leftMotor_DIR_pin, False)
             pwm = 0
-    #	print "SetMotorLeft", pwm
+        #	print "SetMotorLeft", pwm
         self.leftMotorPower = pwm
         self.leftMotorPWM.ChangeDutyCycle(pwm)
 
@@ -147,7 +147,7 @@ class Robot():
             # Stopp mode for the right motor
             io.output(self.rightMotor_DIR_pin, False)
             pwm = 0
-    #	print "SetMotorRight", pwm
+        #	print "SetMotorRight", pwm
         self.rightMotorPower = pwm
         self.rightMotorPWM.ChangeDutyCycle(pwm)
 
@@ -240,10 +240,6 @@ class Robot():
             di, target_ind = tracker.pure_pursuit_control(
                 state, cx, cy, target_ind)
 
-            print(str(di*100))
-
-            self.setMotorLeft(di*100)
-
             state = tracker.update(state, ai, di)
 
             x.append(state.x)
@@ -259,18 +255,19 @@ class Robot():
             self.yaw = state.yaw
             self.v = state.v
        
+    def drive_path(self):
+        print(str(di*100))
 
+        self.setMotorLeft(di*100)
 
 #Main Loop
 #init()
 
 
 bot = Robot()
-bot.setMotorLeft(0.5)
 
-""" while(1):
-    bot.setMotorLeft(0.5)
+while(1):
     
      #Plan path
     bot.generate_path()
-    bot.track_path() """
+    bot.track_path()
