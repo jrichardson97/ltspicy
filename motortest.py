@@ -141,11 +141,17 @@ def exit():
 	io.cleanup()
 
 
-if __name__ == "__main__":
-    print("driving");
-    setMotorLeft(0.5)
-    time.sleep(5)
-    setMotorLeft(0.25)
-    time.sleep(3)
-    setMotorLeft(-0.5)
-    time.sleep(5)
+
+#Test Area
+i=0.01;j=0.99
+
+setMotorLeft(i)
+setMotorRight(j)
+time.sleep(5)
+while(i<=0.99):
+	print("Speed: " + str(i))
+	time.sleep(0.1)
+	setMotorLeft(i)
+	setMotorRight(i)
+	i+=0.01
+	j-=0.01

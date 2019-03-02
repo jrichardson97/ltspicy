@@ -31,7 +31,9 @@ class State:
 def update(state, a, delta):
 
     state.x = state.x + state.v * math.cos(state.yaw) * dt
-    state.y = state.y + state.v * math.sin(state.yaw) * dt
+    
+    y_change = state.v * math.sin(state.yaw) * dt
+    state.y = state.y + y_change
 
     new_yaw = state.yaw + state.v / L * math.tan(delta) * dt
 
@@ -45,7 +47,7 @@ def update(state, a, delta):
 
     yaw_change = state.v / L * math.tan(delta) * dt
 
-    return state, yaw_change
+    return state, yaw_change, y_change
 
 
 def PIDControl(target, current):

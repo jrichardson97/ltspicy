@@ -133,15 +133,24 @@ class Spline2D:
     """
 
     def __init__(self, x, y):
+        #Array holding the distance from start to each point along the x/y
         self.s = self.__calc_s(x, y)
+
+        
         self.sx = Spline(self.s, x)
         self.sy = Spline(self.s, y)
 
     def __calc_s(self, x, y):
+        #Steps between each point in x/y
         dx = np.diff(x)
         dy = np.diff(y)
+
+        #self.ds is an array of steps of dx and dy
         self.ds = [math.sqrt(idx ** 2 + idy ** 2)
                    for (idx, idy) in zip(dx, dy)]
+
+        #Generates a cumulative sum of all steps in ds
+        #Basically gives us the distance of each point from the start along the points
         s = [0]
         s.extend(np.cumsum(self.ds))
         return s
