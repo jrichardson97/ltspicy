@@ -3,6 +3,7 @@ import pure_pursuit as tracker
 import RPi.GPIO as io
 import numpy as np
 import math 
+import time
 
 # -------------------Circle Data---------------------
 circleRadii = [28, 42, 56, 70, 84, 98]
@@ -25,16 +26,17 @@ class Robot():
         self.yaw = 180
 
         # Driving Variables
-        self.target_velocity = 60
+        self.target_power = 0.3
+        self.target_velocity=60
         self.v = 0
-        self.turning_angle = 0  # Going straight, >0=CCW, <0=CW
+        self.max_turning_angle = 70  # Going straight, >0=CCW, <0=CW
         self.min_turn_radius = 0.25  # [m]
         self.wheel_base = 20.32
 
         # Navigation Variables
         self.state = HOME
         self.circle_completion_state=False
-        self.targetCircle = 0
+        self.current_circle = 0
         self.spline = spline.Spline2D([0, 1], [0, 1])
 
 
@@ -162,7 +164,7 @@ class Robot():
     def generate_path(self):
         x = self.x
         y = self.y
-        c = self.targetCircle
+        c = self.current_circle
         #print("Current Circle: "+ str(c))
         state = self.state
 
@@ -183,7 +185,10 @@ class Robot():
         else:
             #If at home, path back into circle
             if(state == HOME):
-                print("Pathing out of home to Circle: " + str(self.targetCircle))
+                if (c >= 5):
+                    c = 4
+
+                print("Pathing out of home to Circle: " + str(self.current_circle))
                 self.state = PATHING_CIRCLE
 
                 cx = [x, circleRadii[c+1], circleXY[c], 0, -circleXY[c], -
@@ -198,24 +203,28 @@ class Robot():
                     print("Bay area full or time ran out, returning home")
                     self.state = PATHING_HOME
 
+                    if (c>=5):
+                        c=4
+                        
                     cx=[x, circleRadii[c+1], 150]
                     cy=[y, 0, 0]
 
                 #Continue to next circle
                 else:
-                    if(c <= 4 and not self.circle_completion_state):
-                        print("Pathing from Circle: " + str(self.targetCircle) +" to Circle: " + str(self.targetCircle+1))
+                    target_circle=c+1
+                    if(target_circle <= 4 and not self.circle_completion_state):
+                        print("Pathing from Circle: " + str(self.current_circle) +" around Circle: " + str(target_circle))
                         cx = [x, circleRadii[c], circleXY[c], 0, -circleXY[c], -
                               circleRadii[c], -circleXY[c], 0, circleXY[c]]
                         cy = [y, 0, circleXY[c], circleRadii[c], circleXY[c],
                               0, -circleXY[c], -circleRadii[c], -circleXY[c]]
 
-                        self.targetCircle += 1
+                        self.current_circle += 1
                     else:
                         if (not self.circle_completion_state):
                             print("All circles pathed, now looping around Circle: 0")
                         self.circle_completion_state=True
-                        self.targetCircle=0
+                        self.current_circle=0
 
                         cx = [x, circleRadii[0], circleXY[0], 0, -circleXY[0], -
                               circleRadii[0], -circleXY[0], 0, circleXY[0]]
@@ -247,15 +256,16 @@ class Robot():
         #Determines initial state of tracker
         state = tracker.State(x, y, yaw, v)
 
-        
+        #Finds end of the spline
         lastIndex = len(cx) - 1
-        x = [state.x]
-        y = [state.y]
-        yaw = [state.yaw]
-        v = [state.v]
+
+        #Calculates the first target index of the spline
         target_ind = tracker.calc_target_index(state, cx, cy)
 
         while lastIndex > target_ind:
+
+            #self.target_velocity=self.determine_velocity()
+
             #Determines new speed of the simulation based on previous speed and target speed
             ai = tracker.PIDControl(self.target_velocity, state.v)
 
@@ -263,48 +273,35 @@ class Robot():
             di, target_ind = tracker.pure_pursuit_control(
                 state, cx, cy, target_ind)
 
-            state, yaw_change, y_change = tracker.update(state, ai, di)
+            state, yaw_change = tracker.update(state, ai, di)
 
-            self.drive_path(yaw_change, y_change)
+            self.drive_path(yaw_change)
 
-            x.append(state.x)
-            y.append(state.y)
-            yaw.append(state.yaw)
-            v.append(state.v)
-
-            # Test
-            assert lastIndex >= target_ind, "Cannot goal"
-
+            #Will eventually be change bc these will be determined by actual position insted of simulated ones
             self.x = cx[lastIndex]
             self.y = cy[lastIndex]
             self.yaw = state.yaw
             self.v = state.v
 
-            self.check_beam()
+            if(not self.object_count>=3):
+                self.check_beam()
 
-    def drive_path(self, yaw_c, y_c):
-        """ print("Yaw: "  + str(self.yaw))
-        print("Change: " +str(yaw_c))
-        print("Velocity: " + str(self.v)) """
+    def drive_path(self, r):
+        d=r*180/math.pi
 
-        R = y_c/math.atan(yaw_c)
+        pf_shift = d*0.0111111111111111111111111
 
-        #print(str(R))
+        left_pf = 1-pf_shift
+        right_pf = 1+pf_shift
 
-        """ if(yaw_c>0):
-            rVel = self.v*(1-(self.wheel_base/2*R))
-            lVel = self.v*(1+(self.wheel_base/2*R))
-        elif(yaw_c<0):
-            rVel = self.v*(1+(self.wheel_base/2*R))
-            lVel = self.v*(1-(self.wheel_base/2*R))
-        elif(yaw_c==0):
-            rVel=self.v
-            lVel=self.v
+        """ print("Left: " + str(self.target_power*left_pf))
+        print("Right: " + str(self.target_power*right_pf)) """
 
-        print("Left Velocity: " + str(lVel))
-        print("Right Velocity: " + str(rVel)) """
-
-        #self.setMotorLeft(delta)
+        self.setMotorLeft(self.target_power*left_pf)
+        self.setMotorRight(self.target_power*right_pf)
+        
+        time.sleep(0.1)
+        
 
     def check_beam(self):
         if (io.input(40) and self.beam_state == False):
@@ -317,3 +314,11 @@ class Robot():
             print("Object in the way")
             self.beam_state=False
             print("Beam State: " + str(self.beam_state))
+
+    def determine_velocity(self):
+        if(self.state==PATHING_HOME):
+            #Code to slow down as appoaching home
+            slow="yes"
+        
+        # Any other time we need to slow down???
+        # Gotta go fast bitch

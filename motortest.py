@@ -11,6 +11,7 @@
 # Import the libraries the class needs
 import RPi.GPIO as io
 import time
+import numpy
 #io.setmode(io.BCM)
 io.setmode(io.BOARD)
 
@@ -96,7 +97,7 @@ def setMotorLeft(power):
 		# Stopp mode for the left motor
 		io.output(leftMotor_DIR_pin, False)
 		pwm = 0
-#	print "SetMotorLeft", pwm
+	#print "SetMotorLeft", pwm
 	leftMotorPower = pwm
 	leftMotorPWM.ChangeDutyCycle(pwm)
 
@@ -129,7 +130,7 @@ def setMotorRight(power):
 		# Stopp mode for the right motor
 		io.output(rightMotor_DIR_pin, False)
 		pwm = 0
-#	print "SetMotorRight", pwm
+	#print "SetMotorRight", pwm
 	rightMotorPower = pwm
 	rightMotorPWM.ChangeDutyCycle(pwm)
 
@@ -143,7 +144,7 @@ def exit():
 
 
 #Test Area
-i=0.01;j=0.99
+""" i=0.01;j=0.99
 
 setMotorLeft(i)
 setMotorRight(j)
@@ -154,4 +155,25 @@ while(i<=0.99):
 	setMotorLeft(i)
 	setMotorRight(i)
 	i+=0.01
-	j-=0.01
+	j-=0.01 """
+
+#Truning test-----------------------------------------------
+
+target_power=0.3 # Duty Cycle
+
+degrees=numpy.linspace(90,-90,91)
+
+for d in degrees:
+	pf_shift= d*0.0111111111111111111111111
+
+	left_pf=1-pf_shift
+	right_pf=1+pf_shift
+
+
+	print("Left: " + str(target_power*left_pf))
+	print("Right: " + str(target_power*right_pf))
+
+	setMotorLeft(target_power*left_pf)
+	setMotorRight(target_power*right_pf)
+
+	time.sleep(0.1)
