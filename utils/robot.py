@@ -39,13 +39,12 @@ class Robot():
         self.current_circle = 0
         self.spline = spline.Spline2D([0, 1], [0, 1])
 
-
         #Condition Variables
         self.object_count = 0
         self.beam_state=True
         self.end_time = False
         self.off_track = False
-        
+        self.start_time=time.time()
 
         #Sets the io scheme to be based on board pin numbers
         #Use io.BCM for GPIO based classifications
@@ -185,6 +184,9 @@ class Robot():
         else:
             #If at home, path back into circle
             if(state == HOME):
+                if(self.end_time == True):
+                    return
+
                 if (c >= 5):
                     c = 4
 
@@ -208,6 +210,8 @@ class Robot():
                         
                     cx=[x, circleRadii[c+1], 150]
                     cy=[y, 0, 0]
+
+                    self.current_circle += 1
 
                 #Continue to next circle
                 else:
@@ -240,7 +244,7 @@ class Robot():
         v = self.v
         sp = self.spline
 
-        #S = a series of steps of 1 from 0 to the end of the spline
+        #s = a series of steps of 1 from 0 to the end of the spline
         #Each step is 1 cm
         s = np.arange(0, sp.s[-1], 1)
 
@@ -286,6 +290,9 @@ class Robot():
             if(not self.object_count>=3):
                 self.check_beam()
 
+            if(time.time()-self.start_time>60):
+                self.end_time=True
+
     def drive_path(self, r):
         d=r*180/math.pi
 
@@ -298,11 +305,10 @@ class Robot():
         print("Right: " + str(self.target_power*right_pf)) """
 
         self.setMotorLeft(self.target_power*left_pf)
-        self.setMotorRight(self.target_power*right_pf)
+        self.setMotorRight(-self.target_power*right_pf)
         
         time.sleep(0.1)
         
-
     def check_beam(self):
         if (io.input(40) and self.beam_state == False):
             print("Object cleared")

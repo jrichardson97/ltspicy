@@ -19,8 +19,6 @@ circleEndAngle = 5.497787144
 homePos = [150, 0, 0]
 targetPos = [19.7990, 19.7990, circleStartAngle]
 
-start_time = time.time()
-
 ####################################
 ####################################
 #Error handling for are we off track
@@ -37,5 +35,10 @@ bot = robot.Robot()
 
 while(1):
      #Plan path
-    bot.generate_path()
-    bot.track_path()
+     bot.generate_path()
+     bot.track_path()
+
+     if(bot.end_time == True):
+          break
+
+print("Time ran out")

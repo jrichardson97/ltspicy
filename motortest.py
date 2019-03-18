@@ -51,8 +51,8 @@ io.setup(leftMotor_PWM_pin, io.OUT)
 io.setup(rightMotor_PWM_pin, io.OUT)
 
 # MAX Frequency 20 Hz
-leftMotorPWM = io.PWM(leftMotor_PWM_pin, 10000)
-rightMotorPWM = io.PWM(rightMotor_PWM_pin, 10000)
+leftMotorPWM = io.PWM(leftMotor_PWM_pin, 1000)
+rightMotorPWM = io.PWM(rightMotor_PWM_pin, 1000)
 
 leftMotorPWM.start(0)
 leftMotorPWM.ChangeDutyCycle(0)
@@ -157,8 +157,7 @@ while(i<=0.99):
 	i+=0.01
 	j-=0.01 """
 
-#Truning test-----------------------------------------------
-
+""" #Turning test-----------------------------------------------
 target_power=0.3 # Duty Cycle
 
 degrees=numpy.linspace(90,-90,91)
@@ -176,4 +175,9 @@ for d in degrees:
 	setMotorLeft(target_power*left_pf)
 	setMotorRight(target_power*right_pf)
 
-	time.sleep(0.1)
+	time.sleep(0.3) """
+
+setMotorLeft(0.90)
+setMotorRight(0.90)
+
+time.sleep(10)
