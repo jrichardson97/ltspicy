@@ -177,7 +177,7 @@ for d in degrees:
 
 	time.sleep(0.3) """
 
-setMotorLeft(0.90)
-setMotorRight(0.90)
+setMotorLeft(0.5)
+setMotorRight(-0.5)
 
 time.sleep(10)

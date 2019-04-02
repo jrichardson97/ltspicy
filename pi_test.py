@@ -1,5 +1,6 @@
 import time
 import utils.robot as robot
+import RPi.GPIO as io
 
 #Circle States
 PATHING_CIRCLE = 1
@@ -30,6 +31,15 @@ targetPos = [19.7990, 19.7990, circleStartAngle]
 
 #Main Loop
 #init()
+""" io.setmode(GPIO.BOARD)
+io.setwarnings(False)
+io.setup(40, GPIO.IN, pull_up_down=io.PUD_UP)
+
+if(io.input(40)):
+     print("Input is true")
+if (not io.input(40)):
+     print("Input is false") """
+
 
 bot = robot.Robot()
 
