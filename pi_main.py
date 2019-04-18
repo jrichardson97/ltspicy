@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 import utils.generate_path as planner
+import thread
 
 def init():
     print("Initializing")

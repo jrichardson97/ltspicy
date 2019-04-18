@@ -1,4 +1,5 @@
 import time
+import thread
 import utils.robot as robot
 import RPi.GPIO as io
 
@@ -7,6 +8,9 @@ PATHING_CIRCLE = 1
 PATHING_HOME = 2
 TURNAROUND = 3
 HOME = 4
+
+time.sleep(5)
+
 
 show_animation = True
 
@@ -40,15 +44,17 @@ if(io.input(40)):
 if (not io.input(40)):
      print("Input is false") """
 
+main()
 
-bot = robot.Robot()
+def main ():
+     bot = robot.Robot()
 
-while(1):
-     #Plan path
-     bot.generate_path()
-     bot.track_path()
+     while(1):
+          #Plan path
+          bot.generate_path()
+          bot.track_path()
 
-     if(bot.end_time == True):
-          break
+          if(bot.end_time == True):
+               break
 
-print("Time ran out")
+     print("Time ran out")

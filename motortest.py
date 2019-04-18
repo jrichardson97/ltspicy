@@ -51,8 +51,8 @@ io.setup(leftMotor_PWM_pin, io.OUT)
 io.setup(rightMotor_PWM_pin, io.OUT)
 
 # MAX Frequency 20 Hz
-leftMotorPWM = io.PWM(leftMotor_PWM_pin, 1000)
-rightMotorPWM = io.PWM(rightMotor_PWM_pin, 1000)
+leftMotorPWM = io.PWM(leftMotor_PWM_pin, 30000)
+rightMotorPWM = io.PWM(rightMotor_PWM_pin, 30000)
 
 leftMotorPWM.start(0)
 leftMotorPWM.ChangeDutyCycle(0)
@@ -114,6 +114,8 @@ def setMotorRight(power):
 	# SetMotorRight(-0.5)  -> right motor moving reverse at 50% power
 	# SetMotorRight(1)     -> right motor moving forward at 100% power
 
+	power=-power
+
 	if power < 0:
 		# Reverse mode for the right motor
 		io.output(rightMotor_DIR_pin, True)
@@ -157,27 +159,26 @@ while(i<=0.99):
 	i+=0.01
 	j-=0.01 """
 
-""" #Turning test-----------------------------------------------
-target_power=0.3 # Duty Cycle
+#Turning test-----------------------------------------------
+""" target_power=95 # Duty Cycle
 
-degrees=numpy.linspace(90,-90,91)
+#degrees=numpy.linspace(90,-90,91)
+d=-7
 
-for d in degrees:
-	pf_shift= d*0.0111111111111111111111111
+#for d in degrees:
+pf_shift= d*0.0111111111111111111111111
 
-	left_pf=1-pf_shift
-	right_pf=1+pf_shift
+left_pf=1-pf_shift
+right_pf=1+pf_shift
 
 
-	print("Left: " + str(target_power*left_pf))
-	print("Right: " + str(target_power*right_pf))
+print("Left: " + str(target_power*left_pf))
+print("Right: " + str(target_power*right_pf)) """
 
-	setMotorLeft(target_power*left_pf)
-	setMotorRight(target_power*right_pf)
+""" setMotorLeft(target_power*left_pf)
+setMotorRight(target_power*right_pf) """
 
-	time.sleep(0.3) """
+setMotorLeft(-0.99)
+setMotorRight(-0.99)
 
-setMotorLeft(0.5)
-setMotorRight(-0.5)
-
-time.sleep(10)
+time.sleep(30)

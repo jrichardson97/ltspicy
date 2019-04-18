@@ -4,6 +4,8 @@ import RPi.GPIO as io
 import numpy as np
 import math 
 import time
+import multiprocessing
+import socket
 
 # -------------------Circle Data---------------------
 circleRadii = [28, 42, 56, 70, 84, 98]
@@ -16,18 +18,52 @@ PATHING_HOME = 2
 TURNAROUND = 3
 HOME = 4
 
+
+def udp_connection():
+    print("UDP Connection setup")
+    UDP_IP = "192.168.137.2"
+    UDP_PORT = 5005
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+    sock.bind(("", UDP_PORT))
+
+    while True:
+        print("Awaiting data")
+        data, ip = sock.recvfrom(1024)  # buffer size is 1024 bytes
+        print(data)
+def main():
+    print("Main")
+
+    #Start button wait
+
+
+
+    bot = Robot()
+
+
+    while(1):
+        #Plan path
+        bot.generate_path()
+        bot.track_path()
+
+        if(bot.end_time == True):
+            break
+
+    print("Time ran out")
+
 class Robot():
     def __init__(self):
         print("Initializaing Robot")
 
         # Position Variables
+        # Will replace with actual values
         self.x = 150
         self.y = 0
         self.yaw = 180
 
         # Driving Variables
-        self.target_power = 0.3
-        self.target_velocity=60
+        self.target_power = 50
+        self.target_velocity = 60
         self.v = 0
         self.max_turning_angle = 70  # Going straight, >0=CCW, <0=CW
         self.min_turn_radius = 0.25  # [m]
@@ -35,16 +71,18 @@ class Robot():
 
         # Navigation Variables
         self.state = HOME
-        self.circle_completion_state=False
+        self.circle_completion_state = False
         self.current_circle = 0
         self.spline = spline.Spline2D([0, 1], [0, 1])
 
         #Condition Variables
         self.object_count = 0
-        self.beam_state=True
+        self.beam_state = True
         self.end_time = False
         self.off_track = False
-        self.start_time=time.time()
+        self.start_time = time.time()
+
+        #UDP Server
 
         #Sets the io scheme to be based on board pin numbers
         #Use io.BCM for GPIO based classifications
@@ -71,8 +109,8 @@ class Robot():
         io.setup(self.rightMotor_PWM_pin, io.OUT)
 
         # MAX Frequency 20 Hz
-        self.leftMotorPWM = io.PWM(self.leftMotor_PWM_pin, 10000)
-        self.rightMotorPWM = io.PWM(self.rightMotor_PWM_pin, 10000)
+        self.leftMotorPWM = io.PWM(self.leftMotor_PWM_pin, 1000)
+        self.rightMotorPWM = io.PWM(self.rightMotor_PWM_pin, 1000)
 
         self.leftMotorPWM.start(0)
         self.leftMotorPWM.ChangeDutyCycle(0)
@@ -101,6 +139,8 @@ class Robot():
         # SetMotorLeft(0.75)  -> left motor moving forward at 75% power
         # SetMotorLeft(-0.5)  -> left motor moving reverse at 50% power
         # SetMotorLeft(1)     -> left motor moving forward at 100% power
+
+        power = -power
 
         if power < 0:
             # Reverse mode for the left motor
@@ -133,6 +173,8 @@ class Robot():
         # SetMotorRight(0.75)  -> right motor moving forward at 75% power
         # SetMotorRight(-0.5)  -> right motor moving reverse at 50% power
         # SetMotorRight(1)     -> right motor moving forward at 100% power
+
+        #power=-power
 
         if power < 0:
             # Reverse mode for the right motor
@@ -171,26 +213,28 @@ class Robot():
         if(state == PATHING_HOME):
             print("Arrived home, turning arround")
             self.state = TURNAROUND
-            self.object_count=0
+            self.object_count = 0
             return
-        elif(state==TURNAROUND):
+        elif(state == TURNAROUND):
             print("Turned around, currently at home preparing to path back out")
             self.x = 150
             self.y = 0
             self.yaw = 180
-            self.state=HOME
+            self.state = HOME
             return
         #Else state is either HOME or PATHING_CIRCLE
         else:
             #If at home, path back into circle
             if(state == HOME):
                 if(self.end_time == True):
+                    endgame()
                     return
 
                 if (c >= 5):
                     c = 4
 
-                print("Pathing out of home to Circle: " + str(self.current_circle))
+                print("Pathing out of home to Circle: " +
+                      str(self.current_circle))
                 self.state = PATHING_CIRCLE
 
                 cx = [x, circleRadii[c+1], circleXY[c], 0, -circleXY[c], -
@@ -205,19 +249,20 @@ class Robot():
                     print("Bay area full or time ran out, returning home")
                     self.state = PATHING_HOME
 
-                    if (c>=5):
-                        c=4
-                        
-                    cx=[x, circleRadii[c+1], 150]
-                    cy=[y, 0, 0]
+                    if (c >= 5):
+                        c = 4
+
+                    cx = [x, circleRadii[c+1], 150]
+                    cy = [y, 0, 0]
 
                     self.current_circle += 1
 
                 #Continue to next circle
                 else:
-                    target_circle=c+1
+                    target_circle = c+1
                     if(target_circle <= 4 and not self.circle_completion_state):
-                        print("Pathing from Circle: " + str(self.current_circle) +" around Circle: " + str(target_circle))
+                        print("Pathing from Circle: " + str(self.current_circle) +
+                              " around Circle: " + str(target_circle))
                         cx = [x, circleRadii[c], circleXY[c], 0, -circleXY[c], -
                               circleRadii[c], -circleXY[c], 0, circleXY[c]]
                         cy = [y, 0, circleXY[c], circleRadii[c], circleXY[c],
@@ -227,14 +272,14 @@ class Robot():
                     else:
                         if (not self.circle_completion_state):
                             print("All circles pathed, now looping around Circle: 0")
-                        self.circle_completion_state=True
-                        self.current_circle=0
+                        self.circle_completion_state = True
+                        self.current_circle = 0
 
                         cx = [x, circleRadii[0], circleXY[0], 0, -circleXY[0], -
                               circleRadii[0], -circleXY[0], 0, circleXY[0]]
                         cy = [y, 0, circleXY[0], circleRadii[0], circleXY[0],
                               0, -circleXY[0], -circleRadii[0], -circleXY[0]]
-            
+
             self.spline = spline.Spline2D(cx, cy)
 
     def track_path(self):
@@ -287,14 +332,16 @@ class Robot():
             self.yaw = state.yaw
             self.v = state.v
 
-            if(not self.object_count>=3):
+            if(not self.object_count >= 3):
                 self.check_beam()
 
-            if(time.time()-self.start_time>60):
-                self.end_time=True
+            if(time.time()-self.start_time > 150):
+                self.end_time = True
 
     def drive_path(self, r):
-        d=r*180/math.pi
+        #There appears to be a slight (5-10) degree shift in the robot to the left
+        #Make sure to account for this during actual tests
+        d = r*180/math.pi
 
         pf_shift = d*0.0111111111111111111111111
 
@@ -305,26 +352,53 @@ class Robot():
         print("Right: " + str(self.target_power*right_pf)) """
 
         self.setMotorLeft(self.target_power*left_pf)
-        self.setMotorRight(-self.target_power*right_pf)
-        
+        self.setMotorRight(self.target_power*right_pf)
+
+        print("Right: " + str(self.target_power*right_pf))
+        print("Left: " + str(self.target_power*left_pf))
+
         time.sleep(0.1)
-        
+
     def check_beam(self):
         if (io.input(40) and self.beam_state == False):
             print("Object cleared")
-            self.object_count+=1
+            self.object_count += 1
             print("Object count: " + str(self.object_count))
-            self.beam_state=True
+            self.beam_state = True
             print("Beam State: " + str(self.beam_state))
-        elif (not io.input(40) and self.beam_state==True):
+        elif (not io.input(40) and self.beam_state == True):
             print("Object in the way")
-            self.beam_state=False
+            self.beam_state = False
             print("Beam State: " + str(self.beam_state))
 
     def determine_velocity(self):
-        if(self.state==PATHING_HOME):
+        if(self.state == PATHING_HOME):
             #Code to slow down as appoaching home
-            slow="yes"
-        
+            slow = "yes"
+
         # Any other time we need to slow down???
         # Gotta go fast bitch
+
+
+def endgame():
+    bot.exit()
+
+    p1.terminate()
+    p2.terminate()
+
+#Multithreading
+p1 = multiprocessing.Process(target=udp_connection)
+p2 = multiprocessing.Process(target=main)
+
+p1.start()
+p2.start()
+
+
+time.sleep(2)
+
+
+p1.terminate()
+p2.terminate()
+
+# both processes finished
+print("Done!")
